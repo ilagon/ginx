@@ -1,16 +1,14 @@
 # ginx
 
-A new Flutter project.
+A cross-platform desktop application to simply usage of the Google Indexing API.
 
-## Getting Started
+## Getting started
 
-This project is a starting point for a Flutter application.
+- To activate usage of the Google Indexing API, follow the instructions found [here](https://developers.google.com/search/apis/indexing-api/v3/prereqs#:~:text=Every%20call%20to%20the%20Indexing,for%20a%20number%20of%20languages.).
 
-A few resources to get you started if this is your first Flutter project:
+- Once you've obtained the OAuth JSON for your service account, click the plus icon beside the dropdown panel on the app
+and drag the JSON file into the input field to create your first configuration.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Enter all the links that you would like to send to the indexing API, submit your entries and voila!
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
