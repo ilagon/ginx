@@ -5,7 +5,6 @@ import 'package:googleapis_auth/auth_io.dart';
 
 class GoogleIndexing {
   Future<AuthClient> _obtainAuthenticatedClient(String customName) async {
-
     final accountCredentials = await ServiceAccountHandler()
         .getGoogleServiceAccountCredentials(customName);
 
@@ -20,20 +19,23 @@ class GoogleIndexing {
   void performIndexing(String customName, List<String> urlList) async {
     var client = await _obtainAuthenticatedClient(customName);
 
-    var url = Uri.parse('https://indexing.googleapis.com/v3/urlNotifications:publish');
+    var indexingUrl = Uri.parse(
+        'https://indexing.googleapis.com/v3/urlNotifications:publish');
 
-    var response = await client.post(
-      url,
-      body: jsonEncode({
-        'url': 'https://example.com/',
-        'type': 'URL_UPDATED',
-      }),
-    );
+    for (var url in urlList) {
+      var response = await client.post(
+        indexingUrl,
+        body: jsonEncode({
+          'url': url,
+          'type': 'URL_UPDATED',
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      print('Successfully indexed URL');
-    } else {
-      print('Failed to index URL: ${response.body}');
+      if (response.statusCode == 200) {
+        print('Successfully indexed URL');
+      } else {
+        print('Failed to index URL: ${response.body}');
+      }
     }
 
     client.close();
