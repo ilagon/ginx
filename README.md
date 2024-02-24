@@ -1,6 +1,6 @@
 # ginx
 
-A cross-platform desktop application to simply usage of the Google Indexing API.
+A cross-platform desktop application to simplify usage of the Google Indexing API.
 
 ## Getting started
 
