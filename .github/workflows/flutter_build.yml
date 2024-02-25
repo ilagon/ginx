@@ -1,53 +1,66 @@
-name: Build and Release Flutter App
+name: Build and Release
 
 on:
   push:
-    tags:
-      - "v*"
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
-  build-windows:
-    name: Build (Windows)
+  build_windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v3
         with:
-          channel: "stable"
-      - run: flutter config --enable-windows-desktop
-      - run: flutter build windows
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ginx-windows
-          path: build/windows/runner/Release/*.exe
+          channel: stable
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Generate build files
+        run: flutter build_runner build
+      - name: Build for Windows
+        run: flutter build windows
+      - name: Create zip archive
+        run: zip -r windows_release.zip build/windows/runner/Release
 
-  build-macos:
-    name: Build (macOS)
+  build_macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v3
         with:
-          channel: "stable"
-      - run: flutter config --enable-macos-desktop
-      - run: flutter build macos
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ginx-macos
-          path: build/macos/Build/Products/Release/*.app
+          channel: stable
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Generate build files
+        run: flutter build_runner build
+      - name: Build for macOS
+        run: flutter build macos
+      - name: Create zip archive
+        run: zip -r macos_release.zip build/macos/Build/Products/Release
 
   release:
-    needs: [build-windows, build-macos]
+    needs: [ build_windows, build_macos ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - name: Download artifacts
+        uses: actions/checkout@v3
         with:
-          path: build/
-      - uses: softprops/action-gh-release@v1
-        with:
-          files: build/**/*
-          draft: true
+          ref: 'refs/heads/main'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ARTIFACT_URL: ${{ github.workflow.baseUrl }}
+          ARTIFACT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download Windows artifact
+        run: |
+          curl -u ${{ ARTIFACT_TOKEN }} -X GET "${{ ARTIFACT_URL }}/artifacts/build_windows/latest/windows_release.zip" -o windows_release.zip
+      - name: Download macOS artifact
+        run: |
+          curl -u ${{ ARTIFACT_TOKEN }} -X GET "${{ ARTIFACT_URL }}/artifacts/build_macos/latest/macos_release.zip" -o macos_release.zip
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v4
+        with:
+          tag_name: ${{ github.sha }}
+          name: Release ${{ github.sha }}
+          body: "Built and released for Windows and macOS."
+          assets: |
+            windows_release.zip
+            macos_release.zip
+
