@@ -11,47 +11,37 @@ jobs:
     name: Build (Windows)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
-        with:
-          distribution: "adopt"
-          java-version: "12.x"
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "2.x"
           channel: "stable"
       - run: flutter config --enable-windows-desktop
       - run: flutter build windows
       - uses: actions/upload-artifact@v2
         with:
-          name: windows-app
+          name: ginx-windows
           path: build/windows/runner/Release/*.exe
 
   build-macos:
     name: Build (macOS)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v2
-        with:
-          distribution: "adopt"
-          java-version: "12.x"
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "2.x"
           channel: "stable"
       - run: flutter config --enable-macos-desktop
       - run: flutter build macos
       - uses: actions/upload-artifact@v2
         with:
-          name: macos-app
+          name: ginx-macos
           path: build/macos/Build/Products/Release/*.app
 
   release:
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v2
         with:
           path: build/
