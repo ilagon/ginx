@@ -45,10 +45,122 @@ class _UrlListState extends State<UrlList> {
                         style: TextStyle(color: textColor),
                       ),
                       onPressed: () {
-                        // Implement your edit logic here
-                        // Call widget.onUrlEdited with the index and the new URL
+                        Navigator.pop(context); // Close the menu
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            TextEditingController controller =
+                                TextEditingController(text: widget.urls[index]);
+                            return AlertDialog(
+                              backgroundColor: secondaryColor,
+                              title: const Text(
+                                'Edit URL',
+                                style: TextStyle(color: textColor),
+                              ),
+                              content: TextField(
+                                decoration: const InputDecoration(
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(color: textColor),
+                                  ),
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(color: textColor),
+                                  ),
+                                ),
+                                cursorColor: tertiaryColor,
+                                style: const TextStyle(color: textColor),
+                                controller: controller,
+                              ),
+                              actions: [
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                      backgroundColor: tertiaryColor),
+                                  child: const Text(
+                                    'Cancel',
+                                    style: TextStyle(color: textColor),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context); // Close the dialog
+                                  },
+                                ),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                      backgroundColor: tertiaryColor),
+                                  child: const Text(
+                                    'OK',
+                                    style: TextStyle(color: textColor),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      widget.urls[index] =
+                                          controller.text; // Update the URL
+                                    });
+                                    Navigator.pop(context); // Close the dialog
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
                       },
                     ),
+                    onTap: () {
+                      // Navigator.pop(context); // Close the menu
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          TextEditingController controller =
+                              TextEditingController(text: widget.urls[index]);
+                          return AlertDialog(
+                            backgroundColor: secondaryColor,
+                            title: const Text(
+                              'Edit URL',
+                              style: TextStyle(color: textColor),
+                            ),
+                            content: TextField(
+                              decoration: const InputDecoration(
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: textColor),
+                                ),
+                                enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide(color: textColor),
+                                ),
+                              ),
+                              cursorColor: tertiaryColor,
+                              style: const TextStyle(color: textColor),
+                              controller: controller,
+                            ),
+                            actions: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                    backgroundColor: tertiaryColor),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(color: textColor),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context); // Close the dialog
+                                },
+                              ),
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                    backgroundColor: tertiaryColor),
+                                child: const Text(
+                                  'OK',
+                                  style: TextStyle(color: textColor),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    widget.urls[index] =
+                                        controller.text; // Update the URL
+                                  });
+                                  Navigator.pop(context); // Close the dialog
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                   ),
                   PopupMenuItem(
                     child: TextButton(

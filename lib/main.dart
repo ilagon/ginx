@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ginx/constants/palette.dart';
 import 'package:ginx/screens/home.dart';
 
 void main() {
@@ -12,13 +13,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'GINX | Google Indexing App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        scaffoldBackgroundColor: const Color(0xFF2F3E46),
+        colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
+        scaffoldBackgroundColor: primaryColor,
         useMaterial3: true,
       ),
-      home: HomeScreen(),
+      home: const HomeScreen(),
     );
   }
 }

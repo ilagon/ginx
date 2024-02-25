@@ -26,7 +26,7 @@ class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
     loadServiceAccountNames();
   }
 
-  void loadServiceAccountNames() async {
+  Future<void> loadServiceAccountNames() async {
     serviceAccountNames = await manager.getAllServiceAccountNames();
     setState(() {});
   }
@@ -48,16 +48,27 @@ class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
-                        onSubmitted: (value) => customName = value,
-                        decoration: const InputDecoration(
-                          labelText: 'Service Account Name',
-                          labelStyle: TextStyle(color: textColor),
-                          hintStyle: TextStyle(color: textColor),
-                          errorStyle: TextStyle(color: textColor),
-                          counterStyle: TextStyle(color: textColor),
-                          fillColor: textColor,
-                          focusColor: textColor,
-                        )),
+                      cursorColor: tertiaryColor,
+                      style: const TextStyle(color: textColor),
+                      onChanged: (value) => setState(() {
+                        customName = value;
+                      }),
+                      decoration: const InputDecoration(
+                        labelText: 'Service Account Name',
+                        labelStyle: TextStyle(color: textColor),
+                        hintStyle: TextStyle(color: textColor),
+                        errorStyle: TextStyle(color: textColor),
+                        counterStyle: TextStyle(color: textColor),
+                        fillColor: textColor,
+                        focusColor: textColor,
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: textColor),
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: textColor),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 20), // Add some spacing
                     TextButton(
                       style: ButtonStyle(
@@ -80,9 +91,11 @@ class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
 
                         if (result != null) {
                           File file = File(result.files.single.path!);
-                          filePath = file.path;
-                          fileName = basename(file.path);
-                          setState(() {});
+
+                          setState(() {
+                            filePath = file.path;
+                            fileName = basename(file.path);
+                          });
                         }
                       },
                       child: const Text(
@@ -90,23 +103,50 @@ class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
                         style: TextStyle(color: textColor),
                       ),
                     ),
-                    if (fileName != null) Text('Selected file: $fileName', style: const TextStyle(color: textColor),),
+                    if (fileName != null)
+                      Text(
+                        'Selected file: $fileName',
+                        style: const TextStyle(color: textColor),
+                      ),
                   ],
                 ),
               ),
               actions: [
                 TextButton(
-                    style: TextButton.styleFrom(backgroundColor: tertiaryColor),
-                    child: const Text(
-                      'OK',
-                      style: TextStyle(color: textColor),
-                    ),
-                    onPressed: () async {
-                      await manager.storeGoogleServiceAccountCredentials(
-                          customName!, filePath!);
-                      loadServiceAccountNames();
-                      // Navigator.pop(context);
-                    }),
+                  style: TextButton.styleFrom(backgroundColor: tertiaryColor),
+                  onPressed: customName != null && filePath != null
+                      ? () async {
+                          try {
+                            await manager.storeGoogleServiceAccountCredentials(
+                                customName!, filePath!);
+                            loadServiceAccountNames();
+                            // ignore: use_build_context_synchronously
+                            Navigator.pop(context);
+                          } catch (e) {
+                            // ignore: use_build_context_synchronously
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Error'),
+                                content: Text(e.toString()),
+                                actions: [
+                                  TextButton(
+                                    child: const Text('OK'),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        }
+                      : null,
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(color: textColor),
+                  ),
+                ),
               ],
             );
           },
@@ -120,23 +160,54 @@ class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
     return Row(
       children: [
         DropdownButton<String>(
+          style: const TextStyle(color: textColor),
+          dropdownColor: secondaryColor,
           value: selectedAccount,
           items: serviceAccountNames.map((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value),
+              child: Text(
+                value,
+                style: const TextStyle(
+                    color: textColor, backgroundColor: Colors.transparent),
+              ),
             );
           }).toList(),
           onChanged: (newValue) {
             setState(() {
               selectedAccount = newValue;
             });
+            if (newValue != null) widget.onChanged(newValue);
           },
         ),
         IconButton(
-          icon: const Icon(Icons.add),
+          icon: const Icon(
+            Icons.add,
+            color: textColor,
+          ),
           onPressed: () => addServiceAccount(context),
         ),
+        IconButton(
+            onPressed: () async {
+              if (selectedAccount != null) {
+                await manager
+                    .deleteGoogleServiceAccountCredentials(selectedAccount!);
+                await loadServiceAccountNames();
+                setState(() {
+                  if (serviceAccountNames.isNotEmpty) {
+                    selectedAccount = serviceAccountNames[0];
+                    widget.onChanged(selectedAccount!);
+                  } else {
+                    selectedAccount = null;
+                    widget.onChanged("");
+                  }
+                });
+              }
+            },
+            icon: const Icon(
+              Icons.delete,
+              color: textColor,
+            ))
       ],
     );
   }

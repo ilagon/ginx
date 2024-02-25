@@ -9,6 +9,29 @@ class ServiceAccountHandler {
   Future<void> storeGoogleServiceAccountCredentials(
       String customName, String filePath) async {
     String jsonContent = await File(filePath).readAsString();
+    final json = jsonDecode(jsonContent);
+
+    // Define the expected keys
+    const expectedKeys = [
+      'type',
+      'project_id',
+      'private_key_id',
+      'private_key',
+      'client_email',
+      'client_id',
+      'auth_uri',
+      'token_uri',
+      'auth_provider_x509_cert_url',
+      'client_x509_cert_url',
+      'universe_domain',
+    ];
+
+    // Check if all expected keys are present
+    for (var key in expectedKeys) {
+      if (!json.containsKey(key)) {
+        throw FormatException('Invalid JSON structure: missing key $key');
+      }
+    }
 
     // Store the JSON content in FlutterSecureStorage
     await storage.write(key: customName, value: jsonContent);
@@ -32,18 +55,6 @@ class ServiceAccountHandler {
   Future<void> deleteGoogleServiceAccountCredentials(String customName) async {
     await storage.delete(key: customName);
   }
-
-  // Future<ServiceAccountCredentials> readServiceAccountCredentials(
-  //     String filePath) async {
-  //   final file = File(filePath);
-  //   final json = jsonDecode(await file.readAsString());
-
-  //   return ServiceAccountCredentials(
-  //     json['client_email'],
-  //     ClientId(json['client_id']['identifier'], json['client_id']['secret']),
-  //     json['private_key'],
-  //   );
-  // }
 
   Future<List<String>> getAllServiceAccountNames() async {
     final allKeys = await storage.readAll();
