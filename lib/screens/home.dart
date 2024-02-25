@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ginx/constants/palette.dart';
 import 'package:ginx/widgets/setting_selector.dart';
+import 'package:ginx/widgets/url_list.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,6 +14,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final urlController = TextEditingController();
   final urls = <String>[];
   String? customName;
+  final focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +30,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   },
                 ),
+                Expanded(
+                  child: UrlList(
+                    urls: urls,
+                    onUrlDeleted: (index) {
+                      setState(() {
+                        urls.removeAt(index);
+                      });
+                    },
+                    
+                  ),
+                ),
                 TextField(
+                  style: const TextStyle(color: textColor),
+                  decoration: const InputDecoration(
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: textColor),
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: textColor),
+                    ),
+                  ),
+                  cursorColor: tertiaryColor,
                   controller: urlController,
+                  focusNode: focusNode,
                   onSubmitted: (url) {
                     var urlList = url.replaceAll(" ", "").split(',');
                     for (var url in urlList) {
@@ -36,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         urls.add(url);
                       });
                     }
+                    urlController.clear();
+                    FocusScope.of(context).requestFocus(focusNode);
                   },
                 ),
               ],

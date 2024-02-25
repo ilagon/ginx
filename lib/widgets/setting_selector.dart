@@ -17,6 +17,7 @@ class ServiceAccountDropdown extends StatefulWidget {
 class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
   List<String> serviceAccountNames = [];
   String? selectedAccount;
+  String? filePath;
   final ServiceAccountHandler manager = ServiceAccountHandler();
 
   @override
@@ -49,7 +50,7 @@ class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
                     TextField(
                         onSubmitted: (value) => customName = value,
                         decoration: const InputDecoration(
-                          labelText: 'Custom name',
+                          labelText: 'Service Account Name',
                           labelStyle: TextStyle(color: textColor),
                           hintStyle: TextStyle(color: textColor),
                           errorStyle: TextStyle(color: textColor),
@@ -79,11 +80,7 @@ class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
 
                         if (result != null) {
                           File file = File(result.files.single.path!);
-                          var credentials = await manager
-                              .readServiceAccountCredentials(file.path);
-                          await manager.storeGoogleServiceAccountCredentials(
-                              customName!, credentials);
-                          loadServiceAccountNames();
+                          filePath = file.path;
                           fileName = basename(file.path);
                           setState(() {});
                         }
@@ -93,19 +90,23 @@ class _ServiceAccountDropdownState extends State<ServiceAccountDropdown> {
                         style: TextStyle(color: textColor),
                       ),
                     ),
-                    if (fileName != null) Text('Selected file: $fileName'),
+                    if (fileName != null) Text('Selected file: $fileName', style: const TextStyle(color: textColor),),
                   ],
                 ),
               ),
               actions: [
                 TextButton(
-                  style: TextButton.styleFrom(backgroundColor: tertiaryColor),
-                  child: const Text(
-                    'OK',
-                    style: TextStyle(color: textColor),
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
+                    style: TextButton.styleFrom(backgroundColor: tertiaryColor),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(color: textColor),
+                    ),
+                    onPressed: () async {
+                      await manager.storeGoogleServiceAccountCredentials(
+                          customName!, filePath!);
+                      loadServiceAccountNames();
+                      // Navigator.pop(context);
+                    }),
               ],
             );
           },
