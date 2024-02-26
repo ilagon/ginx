@@ -48,6 +48,8 @@ jobs:
           path: build/macos/Build/Products/Release/*.app
 
   release:
+    permissions:
+      contents: write
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
