@@ -1,66 +1,63 @@
-name: Build and Release
+name: Build and Release Flutter App
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  build_windows:
+  build-windows:
+    name: Build (Windows)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v3
+      - uses: actions/setup-java@v3
         with:
-          channel: stable
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Generate build files
-        run: flutter build_runner build
-      - name: Build for Windows
-        run: flutter build windows
-      - name: Create zip archive
-        run: zip -r windows_release.zip build/windows/runner/Release
+          distribution: 'temurin' # AdoptOpenJDK has been moved to Adoptium (Temurin)
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x' # Update this to the version you're using
+          channel: 'stable'
+      - run: flutter config --enable-windows-desktop
+      - run: flutter build windows
+      - uses: actions/upload-artifact@v3
+        with:
+          name: windows-app
+          path: build/windows/runner/Release/*.exe
 
-  build_macos:
+  build-macos:
+    name: Build (macOS)
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v3
+      - uses: actions/setup-java@v3
         with:
-          channel: stable
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Generate build files
-        run: flutter build_runner build
-      - name: Build for macOS
-        run: flutter build macos
-      - name: Create zip archive
-        run: zip -r macos_release.zip build/macos/Build/Products/Release
+          distribution: 'temurin' # Same change for macOS
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x' # Ensure this matches your project's Flutter version
+          channel: 'stable'
+      - run: flutter config --enable-macos-desktop
+      - run: flutter build macos
+      - uses: actions/upload-artifact@v3
+        with:
+          name: macos-app
+          path: build/macos/Build/Products/Release/*.app
 
   release:
-    needs: [ build_windows, build_macos ]
+    needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
         with:
-          ref: 'refs/heads/main'
+          path: build/
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: build/**/*
+          draft: true
         env:
-          ARTIFACT_URL: ${{ github.workflow.baseUrl }}
-          ARTIFACT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Download Windows artifact
-        run: |
-          curl -u ${{ ARTIFACT_TOKEN }} -X GET "${{ ARTIFACT_URL }}/artifacts/build_windows/latest/windows_release.zip" -o windows_release.zip
-      - name: Download macOS artifact
-        run: |
-          curl -u ${{ ARTIFACT_TOKEN }} -X GET "${{ ARTIFACT_URL }}/artifacts/build_macos/latest/macos_release.zip" -o macos_release.zip
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v4
-        with:
-          tag_name: ${{ github.sha }}
-          name: Release ${{ github.sha }}
-          body: "Built and released for Windows and macOS."
-          assets: |
-            windows_release.zip
-            macos_release.zip
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
