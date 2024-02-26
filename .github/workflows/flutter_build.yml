@@ -3,7 +3,7 @@ name: Build and Release Flutter App
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -14,18 +14,27 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          distribution: 'temurin' # AdoptOpenJDK has been moved to Adoptium (Temurin)
-          java-version: '17'
+          distribution: "temurin" # AdoptOpenJDK has been moved to Adoptium (Temurin)
+          java-version: "17"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x' # Update this to the version you're using
-          channel: 'stable'
+          flutter-version: "3.x" # Update this to the version you're using
+          channel: "stable"
       - run: flutter config --enable-windows-desktop
-      - run: flutter build windows
-      - uses: actions/upload-artifact@v3
+      - run: flutter build windows --release
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
         with:
-          name: windows-app
-          path: build/windows/runner/Release/*.exe
+          type: "zip"
+          filename: GINX-${{github.ref_name}}-windows.zip
+          directory: build/windows/runner/Release
+      - name: Windows Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: build/windows/runner/Release/GINX-${{github.ref_name}}-windows.zip
 
   build-macos:
     name: Build (macOS)
@@ -34,32 +43,24 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          distribution: 'temurin' # Same change for macOS
-          java-version: '17'
+          distribution: "temurin" # Same change for macOS
+          java-version: "17"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x' # Ensure this matches your project's Flutter version
-          channel: 'stable'
+          flutter-version: "3.x" # Ensure this matches your project's Flutter version
+          channel: "stable"
       - run: flutter config --enable-macos-desktop
-      - run: flutter build macos
-      - uses: actions/upload-artifact@v3
+      - run: flutter build macos --release
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
         with:
-          name: macos-app
-          path: build/macos/Build/Products/Release/*.app
-
-  release:
-    permissions:
-      contents: write
-    needs: [build-windows, build-macos]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
-        with:
-          path: build/
-      - uses: softprops/action-gh-release@v1
-        with:
-          files: build/**/*
-          draft: true
+          type: "zip"
+          filename: GINX-${{github.ref_name}}-macos.zip
+          directory: build/macos/Build/Products/Release
+      - name: macOS Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: build/macos/Build/Products/Release/GINX-${{github.ref_name}}-macos.zip
