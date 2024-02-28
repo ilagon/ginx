@@ -21,7 +21,7 @@ jobs:
           flutter-version: "3.x" # Update this to the version you're using
           channel: "stable"
       - run: flutter config --enable-windows-desktop
-      - run: flutter build windows --release
+      - run: flutter build windows
       - name: Archive Release
         uses: thedoctor0/zip-release@master
         with:
@@ -50,7 +50,7 @@ jobs:
           flutter-version: "3.x" # Ensure this matches your project's Flutter version
           channel: "stable"
       - run: flutter config --enable-macos-desktop
-      - run: flutter build macos --release
+      - run: flutter build macos
       - name: Archive Release
         uses: thedoctor0/zip-release@master
         with:
